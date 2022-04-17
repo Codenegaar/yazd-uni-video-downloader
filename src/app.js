@@ -24,6 +24,7 @@ async function start() {
     }
     const captcha = await lineReader.input(`Enter the captcha code found at ${config.crawling.captchaSavePath}: `);
     crawler.loginCaptcha = captcha;
+    console.log('Logging you in...');
     await crawler.login();
 
     console.log('Receiving video links...');
@@ -35,7 +36,20 @@ async function start() {
     fs.writeFileSync(config.linkSavePath, JSON.stringify(crawler.allVideoLinks, null, 4));
     console.log(`All links written to ${config.linkSavePath}`);
 
+    const dl = await lineReader.input('Do you want to continue downloading videos? [Y/n]: ');
+    if (dl && dl.toUpperCase() != 'Y') {
+      process.exit(0);
+    }
+
+    let videosToDownload = [];
     for await (const classLinks of crawler.allVideoLinks) {
+      const dl = await lineReader.input(`Download ${classLinks.videoTitle}? [Y/n]: `);
+      if (!dl || dl.toUpperCase() == 'Y') {
+        videosToDownload.push(classLinks);
+      }
+    }
+
+    for await (const classLinks of videosToDownload) {
       const downloader = new Downloader(classLinks.videoTitle, classLinks.videoLinks);
       await downloader.downloadAll();
     }

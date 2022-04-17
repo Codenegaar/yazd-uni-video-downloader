@@ -26,6 +26,7 @@ module.exports = class Crawler {
     this._loginCaptcha = null;
 
     this.classPageLinks = [];
+    this.classNames = [];
     this.allVideoLinks = [];
   }
 
@@ -92,9 +93,18 @@ module.exports = class Crawler {
       });
       this.classPageLinks.push(config.crawling.loginPageUrl + link);
     };
+
+    const sidenavButtons = await this.page.$$('.dropdown-btn');
+    for await (const button of sidenavButtons) {
+      let name = await button.evaluate(buttonElement => {
+        return buttonElement.innerHTML.split('<')[0];
+      });
+      this.classNames.push(name);
+    }
   }
 
   async getClassVideoLinks() {
+    let i = 0;
     for await (const classPageLink of this.classPageLinks) {
       await Promise.all([
         this.page.goto(classPageLink),
@@ -103,7 +113,7 @@ module.exports = class Crawler {
       
       const video = await this.page.evaluate(() => {
         const table = document.getElementById('table');
-        if (!table || !table.rows || table.rows.length < 2) return;
+        if (!table || !table.rows || table.rows.length < 2) return null;
 
         const videoLinks = [];
 
@@ -114,10 +124,14 @@ module.exports = class Crawler {
           }
         }
 
-        const videoTitle = table.rows.item(1).cells.item(1).innerHTML.split('_')[0];
-        return { videoLinks, videoTitle };
+        return { videoLinks };
       });
-      this.allVideoLinks.push(video);
+
+      if (video) {
+        video.videoTitle = this.classNames[i];
+        this.allVideoLinks.push(video);
+      }
+      i++;
     }
   }
 
