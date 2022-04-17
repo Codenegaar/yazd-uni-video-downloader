@@ -2,8 +2,12 @@ const puppeteer = require('puppeteer');
 const config = require('../config');
 
 const path = require('path');
+const { exec } = require('child_process');
 const isPkg = typeof process.pkg !== 'undefined';
 
+//If we are on windows and using pkg, use
+//chromium from the build directory. otherwise use the
+//default one (in node_modules)
 let chromiumExecutablePath = undefined;
 if (process.platform == 'win32') {
   chromiumExecutablePath = (isPkg ?
@@ -26,10 +30,30 @@ module.exports = class Crawler {
   }
 
   async init() {
+    chromiumExecutablePath = await this.findChrome();
+
     this.browser = await puppeteer.launch({
       executablePath: chromiumExecutablePath,
     });
     this.page = await this.browser.newPage();
+  }
+
+  //Detect windows chrome (for chrome-less build)
+  async findChrome() {
+    if (process.platform != 'win32') { return undefined }
+    return new Promise((resolve, reject) => {
+      exec(
+        "(Get-ItemProperty -LiteralPath 'HKLM:\\Software\\Microsoft\\Windows\\CurrentVersion\\App Paths\\chrome.exe').'(default)'",
+        { 'shell': 'powershell.exe' },
+        (error, stdout) => {
+          if (error) {
+            resolve(undefined);
+            return;
+          }
+          resolve(stdout.trim());
+        }
+      );
+    });
   }
 
   async close() {
