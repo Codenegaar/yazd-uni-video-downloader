@@ -1,0 +1,18 @@
+{
+  "name": "yazd-uni-video-downloader",
+  "version": "1.0.0",
+  "description": "Video downloader for Yazd University virtual classrooms",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Ali Rashidi (alirashidi127@gmail.com)",
+  "license": "ISC",
+  "dependencies": {
+    "ansi-colors": "^4.1.1",
+    "cli-progress": "^3.10.0",
+    "dotenv": "^16.0.0",
+    "nodejs-file-downloader": "^4.9.3",
+    "puppeteer": "^13.5.2"
+  }
+}
