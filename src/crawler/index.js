@@ -103,7 +103,7 @@ module.exports = class Crawler {
       
       const video = await this.page.evaluate(() => {
         const table = document.getElementById('table');
-        if (!table) return;
+        if (!table || !table.rows || table.rows.length < 2) return;
 
         const videoLinks = [];
 
