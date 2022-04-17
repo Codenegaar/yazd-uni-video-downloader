@@ -15,6 +15,7 @@ async function start() {
     const credentials = await getCredentials(lineReader);
     crawler.username = credentials.username;
     crawler.password = credentials.password;
+    console.log('Loading captcha...');
 
     await crawler.openLoginPage();
     await crawler.saveLoginCaptcha();

@@ -1,4 +1,5 @@
 const puppeteer = require('puppeteer');
+const F2f = require('f2f');
 const config = require('../config');
 
 const path = require('path');
@@ -85,10 +86,11 @@ module.exports = class Crawler {
   }
 
   async loadClassPages() {
-    const sidenavContainers = await this.page.$$('.dropdown-container');
+    const f2f = new F2f();
 
+    const sidenavContainers = await this.page.$$('.dropdown-container');
     for await (const container of sidenavContainers) {
-      let link = await container.evaluate(containerElement => {
+      const link = await container.evaluate(containerElement => {
         return containerElement.lastElementChild.getAttribute('href');
       });
       this.classPageLinks.push(config.crawling.loginPageUrl + link);
@@ -96,10 +98,17 @@ module.exports = class Crawler {
 
     const sidenavButtons = await this.page.$$('.dropdown-btn');
     for await (const button of sidenavButtons) {
-      let name = await button.evaluate(buttonElement => {
+      let farsiName = await button.evaluate(buttonElement => {
         return buttonElement.innerHTML.split('<')[0];
       });
-      this.classNames.push(name);
+      farsiName = farsiName.replace(/ك/gi, 'ک');
+      farsiName = farsiName.replace(/ي/gi, 'ی');
+      let finglishName = '';
+      farsiName.split(' ').forEach( farsiNamePart => {
+        finglishName += f2f.simplef2f(farsiNamePart);
+        finglishName += ' ';
+      });
+      this.classNames.push(finglishName);
     }
   }
 
